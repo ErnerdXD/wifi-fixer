@@ -13,10 +13,22 @@ Instead of typing commands in PowerShell every time, open the app and press a bu
 
 ## ASUS TUF users
 
-ASUS TUF owners have reported Wi-Fi randomly disappearing or the Wi-Fi button going grey, especially after sleep or a restart. Examples on ASUS and Microsoft forums:
+ASUS TUF owners have reported Wi-Fi randomly disappearing or the Wi-Fi button going grey, especially after sleep or a restart.
 
-- TUF F17 (FX706HE) with a **MediaTek MT7921** card: Wi-Fi and Bluetooth vanish from Device Manager.
-- TUF A15 (FA506II) with a **Realtek 8822CE** card: Wi-Fi drops, then the icon and adapter disappear.
+### Reported cases
+
+These are user reports from public forums, not official failure statistics. The Wi-Fi chip seems to matter more than the laptop brand: the **MediaTek MT7921** appears in both the ASUS and HP reports.
+
+| Laptop | Wi-Fi chip | What was reported | Source |
+|---|---|---|---|
+| ASUS TUF F17 (FX706HE) | MediaTek MT7921 | Wi-Fi and Bluetooth vanish from Device Manager almost daily, after startup or sleep. Driver reinstalls didn't help. ASUS replacing the card fixed it for only about two weeks. | [ASUS forum](https://zentalk.asus.com/t5/others/mediatek-bluetooth-and-wi-fi-mt7921-keeps-disappearing-from/m-p/329227) |
+| ASUS TUF A15 (FA506II) | Realtek 8822CE | Wi-Fi drops, then the icon and adapter disappear. A moderator suspected a failing card. | [ASUS forum](https://zentalk.asus.com/en/discussion/63680/tuf-a15-fa506ii-wifi-problem-losing-connection) |
+| HP ENVY 17 (17-ch2000) | MediaTek MT7921 | Adapter disappears and returns after entering BIOS and rebooting. Suggested a newer HP driver or an Intel AX210 card. | [HP forum](https://h30434.www3.hp.com/t5/Notebook-Wireless-and-Networking/MediaTek-MT7921/m-p/9297570) |
+| Dell G7 7588 | Intel AC 9560 | Wi-Fi option vanished (Code 10). A BIOS reset helped only briefly, and replacing the card didn't fix it. | [Intel community](https://community.intel.com/t5/Wireless/error-in-INTEL-R-Wirelees-AC-9560-PC-does-not-recognize-code-10/m-p/549170/highlight/true) |
+
+Other common causes listed in [this guide](https://cloudhousetechnologies.com/blog/how-to-fix-wifi-adapter-not-showing-windows-11-2026): Windows Update breaking drivers, power management turning off the adapter, a stopped WLAN AutoConfig service, and BIOS or kill-switch toggles.
+
+### What to try
 
 If this is you, try **Fix Wi-Fi** first. If it keeps coming back, also try:
 
