@@ -8,8 +8,18 @@ Instead of typing commands in PowerShell every time, open the app and press a bu
 
 - **Fix Wi-Fi** for a greyed-out or missing Wi-Fi button. It rescans hardware to re-detect the adapter, force-kills a stuck WLAN AutoConfig service (`WlanSvc`), starts it again, re-enables the Wi-Fi adapter and restarts Explorer.
 - **Reset Network** for "connected but no internet". It resets Winsock and the IP stack, releases and renews the IP, and flushes DNS.
+- **Check Drivers** (new in v2.0) reads the driver version and date of your Wi-Fi and network adapters, flags drivers that look outdated, and gives you clickable links to the right download page. It picks the adapter maker's page (for example Intel for an AX200), your laptop maker's support page (ASUS, Lenovo, HP, Dell, Acer, MSI and others), a Windows Update shortcut, and a web search for your exact adapter.
 - Dark UI with a live log, a progress bar and ⓘ tooltips that explain what each button does.
 - Asks for administrator rights automatically.
+
+### How Check Drivers decides
+
+- For adapters it knows (currently the Intel Wi-Fi 6 AX200), it compares your version with the latest known release.
+- For every other adapter it goes by driver age: under 1 year is fine, 1 to 2 years is flagged to check, over 2 years is flagged as likely outdated.
+- Age is only a hint. A working adapter with an old driver isn't necessarily a problem.
+- It never installs anything. It only opens download pages.
+
+To keep the AX200 check current, update `KNOWN_LATEST` near the top of `fixwifi.py` when Intel releases a newer driver.
 
 ## ASUS TUF users
 
@@ -33,7 +43,7 @@ Other common causes listed in [this guide](https://cloudhousetechnologies.com/bl
 If this is you, try **Fix Wi-Fi** first. If it keeps coming back, also try:
 
 1. Device Manager → Network adapters → your Wi-Fi adapter → Properties → Power Management → untick **Allow the computer to turn off this device to save power**.
-2. Update the Wi-Fi driver from the ASUS support page for your exact model.
+2. Press **Check Drivers** in the app, or update the Wi-Fi driver from the ASUS support page for your exact model.
 3. Turn off Fast Startup (Control Panel → Power Options → Choose what the power buttons do).
 4. Shut down fully, hold the power button for about 30 seconds, then turn on again.
 
@@ -50,4 +60,4 @@ The exe appears in `dist/`. Windows SmartScreen may warn about it since it's uns
 
 ## Disclaimer
 
-This tool runs system commands (`taskkill`, `net start`, `netsh`, `ipconfig`, `pnputil`) with administrator rights. Read `fixwifi.py` first if you want to see exactly what it does. Use at your own risk.
+This tool runs system commands (`taskkill`, `net start`, `netsh`, `ipconfig`, `pnputil`) with administrator rights. Check Drivers only reads adapter information and opens web pages in your browser. Read `fixwifi.py` first if you want to see exactly what it does. Use at your own risk.
