@@ -13,11 +13,13 @@ import re
 import subprocess
 import sys
 import threading
+import urllib.error
+import urllib.request
 import webbrowser
 from datetime import date
 from urllib.parse import quote_plus
 
-VERSION = "2.0"
+VERSION = "2.1"
 ICON_B64 = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAT3ElEQVR4nN2beZDdxXXvP6f7d9fZNYyWkQCBwEILyMgymGeDwAjCHvNiURUThxAsi+AQm2DeC0m5hAKOnRgc855tAiZ5tlN+8UOuULZZgxECYxssgcFaQJHRAmhGo2Fm7mx3/XWf90ffe2ckjRYkBHZOVddUzf39+tfne06f8+3T3cIhiwor1lgAVp7rQPTQ3303ZNz4bjvXIYc2Pjmkjh/AcJW4Pf69Ylua0nDm7Q/0KEiptcg/HlfY438PqOUq/MEMdWAAlj5gWXVVUPyWZ5uIOi7AuwtRvxDVaaANoIcA4tEUUYQ8yC7EvoSYJygUHufu03PAnjpM9PZ++31ALVeJ44anGmma8ufgrydKH48YcBXwDtS/4+ocloiAicAmAIVKcSdwP9J/N18+e4ClalklE4IwMQArnopYeV7MTevOI5G5h2R2NuVRcOXa3JfQ3mvr10QUVRDxoIJNWJKNUM5vxxX+nLsWPVw36N5v7tNXXfkXlpNI3wMiVAoxgg1Q/y6IKoojkYowEVTyn+euhXfVdRsneypUQ+lzv/w0mbZ7KY141CsiFv0tC/oHExHw3mOMkm6x5Ptu4Wtn3Lk3CGMA1ILF59adTZR6Gl/xeC8IBuWQ8sVvldTGrKqIdSSzEaXcZXztQw+PD4xR9WlhLsoNTzWifBsQnAMRU7f875gDALUxCy42VEoKifv5zPPzOeaRAVQFETUArFhjWSmeRPYzpJtPpJSPAYt6UP3dbyKGStGRapqK1VtYudKzChPQQQUEbniqgSi7GZOYhqsoEh74LyOKYix4N4jnJL5xZh+qYqr0UYmyF5Bo6CQue1DznlvtnW4guIon1dQK/goAbltjozpCTi8mIYr+roX7QxUFFQ1ZjYuB/8OmczUKCxsAvxBXDlPivygEqBrikuB1AStWGFaKMyDKNU+l8TotUNwqAO9gEwULRDLWrIAhNCt7/UY16ypVF36HxoIKLgbVyexe0gK1NJiNMqjP4l146IhmQSAMUlVSARcrruLB1aNyVfsqufAKnrHfrEDCYKIQib0qXmuIHIlobQ2TQW0WGIjG/1ZH/AhYjzVhkK7iiUseDDS1JJl9fAPzOhs4eXKaGa0pJjVENKTC8j1fdgyMxryZK/Ob3QU2dufZvKtAbrCMdx6SFpsMScm9E+uvcTjuBUA9Yr5tMdWk6fIOvDJ9SoaL5k3isgWTOPOEJqa1JN9Wfz1DZdZtH+Gh9f08uqGfHd15ACQTYeRwgahaeZyNxwGghwWACBgRXD7Q67PntLJ8cSeXLZhES2ZPfJ0Lrqz7cWVBMALWCFOak1x62iQuPW0SIyXHo+v7uffpbp7c0I9TxWai0NfbGm4NAJ0AAN4+ANYILva4YsxZc9v468uO57LT2uu/x17r3RmByNam1oGnmPOKr1pYBBpTlqWLOli6qIMnNg3wdw/tYM36fkgabNLi3KGOeRwAVTlsD4isEI+WaWtOcsfVp/Bn502vrj3AVSO3MVKfGgDFimfnQImduRK9wxWGSyEDNyYtHU0JOluTTG9LkU1a7LhhxS5YzIhwwdw2Lpjbxrd/tov/+cBr7O4rEjUmwjNHBkAggAcDILg8xINlPnr6Mdx37SnM6siMKQ5EZszCr3bneXx9H6tfzfHymyN05UpUSg5iHQtGAljBpi2dzUlOm9HIubNbuei0duZPb6h7jvOKUxAR/uTDU1kyt43rv7OZh5/vwTYlDmFKjAcgX/80/NlP2yiVt2KiVnys+yt8SFg14EdjbrpiJnf94ckIwdWNCBD+OoV/X7ubbz29kzWbc1RGK+HlhIFIMEYQpP4VrcYF7wnRrZoybUPE2Se3ct05nVx15hSSVqrpMKTGGtBfeHArd/zgNUw6QuVAIKgiVvC+hPOz+O6SnXvGgDHGsA9wIiAefNnx1WtP4aYLj8WroghCLaULD76wmzt+uI0XtwwGtNIRUWOiriSA1IJQ9VNSHZsRIBIkihAJrr9mfR9rXn6Lv3+omVuvmMknPjS1DlqwuHL7lSdyXHuaT39rIyZhQGQ/2XxfHQMAg0DqwDFAAF9y3LNsHtefO52KUyIrOB8s8eZAic/+66v8+y92gRFsQxR4hyq+6iHeKxr74P7j/bU2ryJBIoMx4L0GYNMWBDa8PsTVX3uZ7y3q5n9dE6Zd7BVrhIpTlp3TiffK9d/aiElbJuZNhxkEjYAveWZOb+D6c6fXP+yqIDy6vo/r/mk93b0FbFMSVcU5jzWCoPiCw1c8pCyTJ6U4vj1DZ1uK1mwV/0JM90CJHX1FdvUXiYsOEgZJh1DonGKSBkkJj6zt4bktOe5bNo8/WDS5PpbYK8vPnc6XH9nO9q5RTNLUp8vEAMh4AAbBJwJpnwCA2vOj+QqjZUdDMgzMWOGe1W9ww/0bwQhRU4I49oipcoORMhjh/bNauHLRZJbMa2fe9EZastE+3wAYLsS80jXKk5v6eXBdD2u35ILy2QSoBsAbI/rzFT7+lRf4h2vmcMslM6tGEkbLjtF8JVQ59tX+QAAc2AMUMJHQ25tn2f0buesTs8kkDXc/9jq3/dtmTDYCEeKKx1rBlR1a8Sw5vYObLzmBC087hnGJoZ4xxs8AK0JTJuKMWS2cMauFWy8/gdUb+/nqo9t4eG0PWINNWeKKx1iQtOV//MtGRosxn7toJoWy4+b/u5ne3jwmm8AfDIDqeMKfTzzUhrFbsQfPAlqIaW5Lk4yEt3oLe0TeyArxcIXOyRnu/KM5/OF/m1Z/N3ZaDYKCrXrIePGqgd6qIiJYK/UY9uC6Hv7yu6+wvWuEqClJ7EJ8EAFfiDmmI0M5VoYGikgmOrQsYKK9ssAhECFVMJmIoZEyKNhMhAvcNszDXIkli6bw7RsWML0tFbJENd2HXD6mdMV5RosOBRpSlmRkMHbMJnE1CAJcuWgKH5ndxqfuXc+PftaFbU7iqizTZCLeGigFopSJ9mP5ugYcMRP0TpHawqe6IjEiuNEy1108k/uWnRqIklNM1dJSXRav2djHYy/18sutOV7vKzJYDOuH5nTEjLY0HzyxhYsWdHDe/PZ6jveqxF7paEryw89/gM+0p/nmQ1sxDcHNvVPE1sZ2sBVSDQAPhL3UsSmgHHQKTCTWCC5f4aMLp/Dk35xZz/da9QqA7z7zJnc/vI0XX8sFkhMJ1XlQHbkGAhQrJAzzZzZz48UnsOz84xACAxQJ88wY4fwvPs/qF3uw2UTwwEOW2hRwJRI6i+9evnOMqSt7esEhNkGh7Dh/fjteA993Pii/tTfPBbc/xzV3rePF1wYwaUvUnMBmIkzCYKyEokfCYDMRUXMCk7Zs2D7I8rtf5Jwv/IxNXSMBZK+U4gDs+fPboezCtw+/SAowrvR9mB2pD1Z79MUejEAmaUhY4aev9nPWXz3DT9Z1EzUlMCmLurDThiree3zs8GWH977elzqPSQagnl3fy4f/6hmeWN9LwgqZpEEEHn2xBxIG9Ye5b4HWZsCR1wOcU0za8uyve7ns75/nk+ccy292jXLHDzZTLLqwUot9Peq7kXJw+YYELQ0JAIbyFdxwGUSQKkeIYyVqiMjlK1z+pef5wsdnc9LULP/60zd5dn0vpub+NUp9SOPelweMxYDYbcXYtx0DaiIiaKFSpbhANoFYQb1irOCLoVK0ZOEUPnH2DD54UhtTWlKIwO7BEi9szfH9Z3fyyLpdoKHg4ZwiRlDnoehCrRBFrEHLPnzLCCQESRowJsS3/caFagxQV0LtLFZd/vbS4IFEq4OmumJ0XtGqAn6kzMzORr6+bAGXfmDqPu8e05Rk7owmPnnOsTy5vpfP3PcSm3cMBULjPBIJNgWuv4SWikgiTyJbQhIejQ3xQBJfzEAyDW0pJJNAHRPocsA06MEfvB5wINm7MmNM8Ioz57Tzw78+iyktqXr+9lrN81USVUuX55/awc++tJhLbv85azf3Y9MG1z2CqwzRckovrfP7yEwfIWqIEetRL8SjCQrdDQxumETulcmoNCNTsqjYvbxhXya4pwdw+B4woVRT4tc+tYApLSnKsSeyUk2P+84yr0o59rQ3JvnG8tM547OP4XbkaTqhm85Lt5OdMRKeqxjUB3IhVkm2lkgfU6BtwVsUunbS9ejxDL06DelsQhPJcSDsD4DacvgdBkB9CCfN6TGcjYR9l/sf38pTG95CVfnwnHaWXzSLhB0rElTKJXTnIJM/+jqdl20DD3E+9CMypgAKGgtxJfyW7sgz60830fX4KD0/ORHpbB4DobbYU6WWBsZV7PQdb0aAcsxt399IqeJJRoatPaMsuukn/L9nXuesOe2cPb+DR37Zxemf/Q+2dI2QjAwDoyWuuXUNrR/exnFXbsUXDa5kEaOI0X2dRxj7LU5AMcmMS7YzZclWtHsE8dUDIfUaxD4xYBC0esLqHfQAFyuSiVj11A7Wvz7IyZ1NrF7XzU3/fTa3Xz2//twNF53IVx7czMK/eJzzPjiNV37Vww7zn8z/+OuUhm1Y+JiDj0sQhuJhnCoNwxmmX7SDQncDQ79JIFMb0Jh9lvxHTIQORjjUe0za8uq2HD9+7DVmHdvE7VfPxzklHtduuXI2C97Xzo9/tJnf7Ohm1h+8UY3kckgbVUaEUVfgUyf+PrfPX0ZT1EClrEy/ZAfGDIcULcreldMxAPxRAKDavPck02F76/xTJ4fSGGGFOL7ie+HCydii0vH+fjLTh+pufzCJxNJfGmL5iR/j1jl/zCdnXsyyWZeTGy3ROLVA66m7IVcJsaN26iX/bnjAeBCcx3mld6gU0uM4K3gNZa3eXBFXKtE89y3Gm92KwYpFJnCFSCx95UE+NmMxnz/laso+RoFXhreTsBbvoXV+H/hSqEfWdN3HA44yAM4rkrE8/Is36B4okohMqPN7JRkZcvkKP3hyO6bNkZo2gq8YRELNeagySn95EKduj0KKFctgZZRFk+bw5dNuIFZH0kR8Y8sqfvDGapoTWeIyZKaOYhsKUPbsHefeNQDUe8QKAwNFfv+2NazflsOawAk2vznEx/72GXbtHCbZ5rDZMuoDvS66EldMP4db5/wx2ShN0ZWxYjBiKLginZl2vr7wZtI2SSSWH+58hq9u/jfakk14AlGy2ZhEYwnKug8Ae1Hh8PvREu88krGs3djLws8+yqL3tWNEeGFLH6V8GUlFqKkgVjEYCr7M7Obj+er7/wKAM9rnsWztlyi4EgmJSEjENz5wC1PTYT9yXf8r3Prre2hMZPdIZmIUSXrwnr0XTnvVA/xRboTlbsYSx57nftXNz1/oolR2mEyEqqKxRX0gSxZDrjJMX3kQRTm99X388wf/hoxN0V8e4s7338ipLbMAeCPfw40v3gWEqTF+B1q9oBVT3dzwexg5ANC3qwi+UD01p0eBE40hr9WymoSaos0mQnEzVrBKZTRJPJoA40maBN2FPpat/RKDlREUZUHrSXx94c2snL+MC6eeiVPPSJznhhfupK88RNqm8LVT7Bqs7woRleFUOHujgNcilUAFDajw3M0FYBdUt2SOcjwIMSHU+V2tSOIViUALKQrdDZgoZI3GKMvLuS386S+/yGBlFIAPtc/n2hMuJa4GxZtf+t9sGHyNpiiL07ED4YogkafYk8WNpCFCg819Ly0MBgAWV6+ZeH0JsdXRHX0AJmwAJiK3sb1+0cOpozXRVAXhDnLlYQDKvkIkli9u+jaPdf+CSclmYt3rNLyGxVJuUztohBj1YBVlPauucix9wI5bC5jHUC94L+8VAOoUGmBwUweF7kZs0oEKcRWEl3JbuG7t39Fd7CNpEvzzth9z/9Yf0Z5qnVB5k3CU3sqS+/VkaJDQPyKoPAbA7g4RAtdUltzbAskt2OgYvNM9AuS7KGIUHfQ0zd7FSdduIC5E9ftPVizD8SjTMx3MyEzmhYFXSZrEhP2oF6KGCtu+N4fcyzOQVqMazj+M4Cons3pZD6ww4Zzg4hURP1k+iPpvYtOhBvWeeQFIMwxvmkzX4zNJNJZRDXZy6miMsvSWcjzfv4mUmeDglQblE01ldq05jtyvpiHNoE4dUVbw7l9YvayHpQ9YWOlrRxQEbhMWz2wmoRuQqBNfUepbIO+yCIh6dMgz5YJtdF64DR8bfLm6KWsCSRof7RWpur3HJB09a46j6+FZSKNFjfEhwvocvjKX1Z/aDbcJrPRVBUVZOk94+toccXwdYsNxCK1WOFXDV96t5qsHL5qEnidOYOt35lPuyxA1VLCZGIwPylfjpljFpmKihgqVwSTbvzeXrodOQhpMOPirOEzC4OPrg/VXGVjpq1iPk9pNinPvvZlUy52UR0IUkvfAEzSMTkTRYTCZMm2n7qZl3luB22dixCrqBVeIKPZkGXzlGAZe7sCNppEmUBUPeBJNEeXBv+WpT69g8YqIp1dOcGWmJrUHzrvvFmzmH/Ax+Eq4QCHvzaUpMRqKGXkDxmGbSiSaypiEx1cMlZEkbjgFzkLGIwlUHQ4TRdgkxPkJlYf9lRpqnnDOvVdgk1/HJo/FFcDHjvrG9Lt8ZU5CRFIFYoHxxRKrYFVFVFVFwUZEGXDlHnz5czy9/Pv7u0C5fyVqL3zk7g6ihr8EvQ6b7ghzNAZ1Y+Tl3Za9i8oqIBYkHNTAlQaA71AufIWf39h1oNujB7bi+BfP+uZkkqlLwf0ecBrqp6BkD9rH0RdFpAD0YsyvEfMEpfxD/PzGLuAIrs6O9S8sXWX27ESFj9zTSlKy5IHsEapwpJKPCjz3Zq4W2YGq4ksPenn6bYgKi1dEgUD8lsrSByyLV0Sw4pCz1v8HZ8XZn/rqOL4AAAAASUVORK5CYII="
 
 BG = "#16181d"
@@ -125,20 +127,96 @@ def assess(desc, version, date_str, today=None):
     return ("old", f"Over 2 years old ({days // 365} years). Likely outdated.")
 
 
-def driver_links(desc, maker, model):
-    """Return a list of (label, url); the first one is the best place to start."""
+CHIP_VENDORS = {"intel": "Intel", "realtek": "Realtek", "mediatek": "MediaTek", "qualcomm": "Qualcomm",
+                "atheros": "Atheros", "broadcom": "Broadcom", "killer": "Killer", "ralink": "Ralink"}
+
+
+def category_hint(desc):
+    """Short text to Ctrl+F for on the maker's driver page.
+
+    ASUS lists Wi-Fi and LAN drivers under 'Networking' and names them differently per chip
+    ('Intel Wireless LAN', 'MediaTek WLAN', 'Realtek Wireless LAN Driver'), so the chip maker's
+    name is the most reliable search term.
+    """
+    d = desc.lower()
+    for key, name in CHIP_VENDORS.items():
+        if key in d:
+            return name
+    return "WLAN" if is_wifi(desc) else "LAN"
+
+
+def asus_model_codes(*names):
+    """Pull ASUS model codes (FA506IH, GL502VML, UX425EA...) out of model / board strings."""
+    codes = []
+    for s in names:
+        s = (s or "").upper().replace("_", " ")
+        for m in re.findall(r"\b[A-Z]{1,4}\d{3,4}[A-Z0-9]{0,5}\b", s):
+            if m not in codes:
+                codes.append(m)
+    return codes
+
+
+def url_exists(url):
+    """Best effort: only a clear 404/410 counts as 'doesn't exist'. Offline or blocked = assume OK."""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=6) as r:
+            return r.status < 400
+    except urllib.error.HTTPError as e:
+        return e.code not in (404, 410)
+    except Exception:
+        return True
+
+
+def copy_clipboard(text):
+    try:
+        subprocess.run("clip", input=text, text=True, shell=True, creationflags=NO_WINDOW)
+    except Exception:
+        pass
+
+
+def open_link(url, term=None):
+    if term:
+        copy_clipboard(term)
+    webbrowser.open(url)
+
+
+def driver_links(desc, info):
+    """Return a list of (label, url, search_term). The first one is the best place to start.
+
+    search_term is only set for links where it helps: it is copied to the clipboard on click
+    so the user can Ctrl+F on the driver page.
+    """
+    maker = (info.get("maker") or "")
+    model = (info.get("model") or "")
     d = desc.lower()
     links = []
+    asus_exact = False
+
+    if re.search(r"asus", maker.lower()):
+        term = category_hint(desc)
+        for code in asus_model_codes(info.get("board"), model, info.get("sku"))[:2]:
+            url = f"https://www.asus.com/supportonly/{code}/HelpDesk_Download/"
+            if url_exists(url):
+                links.append((f"ASUS drivers for your exact model ({code})", url, term))
+                asus_exact = True
+                break
+
     if "intel" in d:
         if "ax200" in d:
-            links.append(("Intel AX200 driver page", INTEL_AX200_URL))
-        links.append(("Intel Driver & Support Assistant", INTEL_DSA_URL))
-    for pattern, name, url in MAKER_PAGES:
-        if re.search(pattern, (maker or "").lower()):
-            links.append((f"{name} support & drivers", url))
-            break
-    query = quote_plus(f"{maker or ''} {model or ''} {desc} driver download".strip())
-    links.append(("Search online for this driver", f"https://www.google.com/search?q={query}"))
+            links.append(("Intel AX200 driver page", INTEL_AX200_URL, None))
+        links.append(("Intel Driver & Support Assistant", INTEL_DSA_URL, None))
+
+    if not asus_exact:
+        for pattern, name, url in MAKER_PAGES:
+            if re.search(pattern, maker.lower()):
+                links.append((f"{name} support & drivers", url, None))
+                break
+
+    first_word = (maker.split() or [""])[0].lower()
+    who = model if first_word and first_word in model.lower() else f"{maker} {model}"
+    query = quote_plus(f"{who} {desc} driver download".strip())
+    links.append(("Search online for this driver", f"https://www.google.com/search?q={query}", None))
     return links
 
 
@@ -165,7 +243,8 @@ $a = Get-NetAdapter -Physical | ForEach-Object {
                      Version = $_.DriverVersionString; Date = "$d"; Provider = $_.DriverProvider }
 }
 $c = Get-CimInstance Win32_ComputerSystem
-[pscustomobject]@{ Adapters = @($a); Maker = $c.Manufacturer; Model = $c.Model } | ConvertTo-Json -Depth 4 -Compress
+$b = Get-CimInstance Win32_BaseBoard
+[pscustomobject]@{ Adapters = @($a); Maker = $c.Manufacturer; Model = $c.Model; Sku = $c.SystemSKUNumber; Board = $b.Product } | ConvertTo-Json -Depth 4 -Compress
 """
 
 
@@ -177,7 +256,9 @@ def read_adapters():
         raw = [raw]
     adapters = [a for a in raw if isinstance(a, dict) and a.get("Desc")]
     adapters = [a for a in adapters if not is_virtual(a["Desc"])]
-    return adapters, data.get("Maker") or "", data.get("Model") or ""
+    info = {"maker": data.get("Maker") or "", "model": data.get("Model") or "",
+            "sku": data.get("Sku") or "", "board": data.get("Board") or ""}
+    return adapters, info
 
 
 # ---------------------------------------------------------------------------
@@ -317,7 +398,7 @@ def check_drivers():
     set_status("Checking drivers...", ACCENT)
     log("▶ Check Drivers", ACCENT)
     try:
-        adapters, maker, model = read_adapters()
+        adapters, info = read_adapters()
     except Exception as e:
         log(f"Couldn't read adapter info: {e}", RED)
         log("Try running the tool as administrator.\n", MUTED)
@@ -347,12 +428,17 @@ def check_drivers():
         if rank[level] > rank[worst]:
             worst = level
         if level in ("warn", "old"):
-            links = driver_links(a["Desc"], maker, model)
+            links = driver_links(a["Desc"], info)
             tip = chipmaker_tip(a["Desc"])
             if tip:
                 log(f"   {tip}", MUTED)
-            for label, url in links:
-                log_link(label, url)
+            for label, url, term in links:
+                log_link(label, lambda u=url, t=term: open_link(u, t))
+                if term:
+                    kind = "Wi-Fi (WLAN)" if is_wifi(a["Desc"]) else "LAN (Ethernet)"
+                    log(f'     On that page: pick your Windows version, open "Networking" and '
+                        f'look for the {term} {kind} driver. Clicking the link copies "{term}" '
+                        f'so you can press Ctrl+F and paste.', MUTED)
             if first_problem is None:
                 first_problem = (a["Desc"], links[0])
 
@@ -372,11 +458,12 @@ def check_drivers():
 
 def prompt_download(desc, link):
     from tkinter import messagebox
-    label, url = link
+    label, url, term = link
+    extra = f'\n\n"{term}" will be copied so you can press Ctrl+F on the page.' if term else ""
     if messagebox.askyesno("Driver update",
                            f"The driver for\n{desc}\nmay be outdated.\n\n"
-                           f"Open the download page now?\n({label})"):
-        webbrowser.open(url)
+                           f"Open the download page now?\n({label}){extra}"):
+        open_link(url, term)
 
 
 # ---- widgets ---------------------------------------------------------------

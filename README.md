@@ -8,7 +8,8 @@ Instead of typing commands in PowerShell every time, open the app and press a bu
 
 - **Fix Wi-Fi** for a greyed-out or missing Wi-Fi button. It rescans hardware to re-detect the adapter, force-kills a stuck WLAN AutoConfig service (`WlanSvc`), starts it again, re-enables the Wi-Fi adapter and restarts Explorer.
 - **Reset Network** for "connected but no internet". It resets Winsock and the IP stack, releases and renews the IP, and flushes DNS.
-- **Check Drivers** (new in v2.0) reads the driver version and date of your Wi-Fi and network adapters, flags drivers that look outdated, and gives you clickable links to the right download page. It picks the adapter maker's page (for example Intel for an AX200), your laptop maker's support page (ASUS, Lenovo, HP, Dell, Acer, MSI and others), a Windows Update shortcut, and a web search for your exact adapter.
+- **Check Drivers** (new in v2) reads the driver version and date of your Wi-Fi and network adapters, flags drivers that look outdated, and gives you clickable links to the right download page. It picks the adapter maker's page (for example Intel for an AX200), your laptop maker's support page (ASUS, Lenovo, HP, Dell, Acer, MSI and others), a Windows Update shortcut, and a web search for your exact adapter.
+- **ASUS deep link** (v2.1): on an ASUS laptop it reads your model code (for example `FA506IH`) and links straight to that model's page, `asus.com/supportonly/<MODEL>/HelpDesk_Download/`, instead of the generic download center. Clicking the link also copies the chip maker's name (for example `Intel` or `MediaTek`) to the clipboard, so you can press Ctrl+F on the page and paste it to jump to the right driver. ASUS lists Wi-Fi and LAN drivers under **Networking**.
 - Dark UI with a live log, a progress bar and ⓘ tooltips that explain what each button does.
 - Asks for administrator rights automatically.
 
@@ -18,6 +19,8 @@ Instead of typing commands in PowerShell every time, open the app and press a bu
 - For every other adapter it goes by driver age: under 1 year is fine, 1 to 2 years is flagged to check, over 2 years is flagged as likely outdated.
 - Age is only a hint. A working adapter with an old driver isn't necessarily a problem.
 - It never installs anything. It only opens download pages.
+- ASUS doesn't put the Windows version or driver category in the page address, so the tool can't preselect them. You pick your Windows version on the page.
+- The exact-model link only exists for ASUS so far. Other makers get their general support page plus a web search.
 
 To keep the AX200 check current, update `KNOWN_LATEST` near the top of `fixwifi.py` when Intel releases a newer driver.
 
